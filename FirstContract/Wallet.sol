@@ -24,6 +24,11 @@ contract Wallet {
         //emit Deposit(msg.sender, msg.value);
     }
 
+    function withdraw() onlyOwner enoughBalance(uint amount) public payable {
+        payable(msg.sender).transfer(amount);
+        event Withdraw(address receiver, uint amount);
+    }
+
     function transferTo(address payable to, uint amount) onlyOwner enoughBalance(amount) external payable {
         to.transfer(amount);
         emit Transfer(_owner, to, msg.value);
