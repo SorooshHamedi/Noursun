@@ -2,10 +2,10 @@
 pragma solidity ^0.8.15;
 
 contract Wallet {
-    address private _owner;
+    address payable private _owner;
 
     constructor() {
-        _owner = msg.sender;
+        _owner = payable(msg.sender);
     }
 
     event Withdraw(address receiver, uint amount);
@@ -24,16 +24,16 @@ contract Wallet {
         //emit Deposit(msg.sender, msg.value);
     }
 
-    function withdraw() onlyOwner enoughBalance(uint amount) public payable {
+    function withdraw(uint amount) external payable onlyOwner enoughBalance(amount)  {
         payable(msg.sender).transfer(amount);
-        event Withdraw(address receiver, uint amount);
+        emit Withdraw(msg.sender, amount);
     }
 
-    function transferTo(address payable to, uint amount) onlyOwner enoughBalance(amount) external payable {
+    function transferTo(address payable to, uint amount) external payable onlyOwner enoughBalance(amount)  {
         to.transfer(amount);
         emit Transfer(_owner, to, msg.value);
     }
     function getBalance() public view returns(uint256) {
-        return address(this).balance;
+        return _owner.balance;
     }
 }
