@@ -1,40 +1,43 @@
 // SPDX-License-Identifier: GPL-3.0
 pragma solidity ^0.8.15;
+import "https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contracts/access/Ownable.sol";
 
-contract Wallet {
-    address payable private _owner;
+interface InterfaceWallet {
+    function deposit(uint _amount) external;
+}
 
-    constructor() {
-        _owner = payable(msg.sender);
+contract Wallet is Ownable {
+    address private _owner;
+    uint private _balance;
+
+    
+    constructor(uint initialDeposit) {
+        _balance = initialDeposit;
+        _owner = msg.sender;
     }
 
-    event Deposit(address to, uint amount);
+    modifier enoughBalance(uint _amount) {
+        require(_balance >= _amount, "The requested amount is higher than the wallet's balance");
+        _;
+    }
+    
+    event Deposit(uint amount);
     event Withdraw(address to, uint amount);
     event Transfer(address from, address to, uint amount);
+
+    function deposit(uint _amount) external {
+        _balance += _amount;
+        emit Deposit(_amount);
+    }
+
+    function transferTo(address _to, uint _amount) external onlyOwner enoughBalance(_amount) {
+        _balance -= _amount;
+        InterfaceWallet(_to).deposit(_amount);
+        emit Transfer(msg.sender, _to, _amount);
+    }
+
+    function getBalance() external view returns(uint) {
+        return _balance;
+    }
     
-    modifier onlyOwner {
-        require(msg.sender == _owner, "Only the owner has authority for this action.");
-        _;
-    }
-
-    modifier enoughBalance(uint amount) {
-        require(address(this).balance >= amount, "Not enough ether in account");
-        _;
-    }
-    receive() external payable {
-        emit Deposit(msg.sender, msg.value);
-    }
-
-    function withdraw(uint amount) external payable onlyOwner enoughBalance(amount)  {
-        payable(msg.sender).transfer(amount);
-        emit Withdraw(msg.sender, amount);
-    }
-
-    function transferTo(address payable to, uint amount) external payable onlyOwner enoughBalance(amount)  {
-        to.transfer(amount);
-        emit Transfer(_owner, to, msg.value);
-    }
-    function getBalance() public view returns(uint256) {
-        return _owner.balance;
-    }
 }
