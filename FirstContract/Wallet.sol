@@ -8,7 +8,8 @@ contract Wallet {
         _owner = payable(msg.sender);
     }
 
-    event Withdraw(address receiver, uint amount);
+    event Deposit(address to, uint amount);
+    event Withdraw(address to, uint amount);
     event Transfer(address from, address to, uint amount);
     
     modifier onlyOwner {
@@ -21,7 +22,7 @@ contract Wallet {
         _;
     }
     receive() external payable {
-        //emit Deposit(msg.sender, msg.value);
+        emit Deposit(msg.sender, msg.value);
     }
 
     function withdraw(uint amount) external payable onlyOwner enoughBalance(amount)  {
